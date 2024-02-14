@@ -1,3 +1,5 @@
+#! /usr/bin/env node
+
 require("dotenv").config();
 
 const isUnattended = process.argv.includes("--unattended");
