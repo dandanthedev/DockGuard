@@ -274,8 +274,10 @@ async function main() {
       exec
     );
 
-    //trim all non alphanumeric characters, do allow spaces, newlines, - and tabs
-    let execTrim = exec.replace(/[^a-zA-Z0-9\s\n\t-]/g, "");
+    //remove all ? characters from the dump
+    let pattern = /^[a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]*$/;
+
+    let execTrim = exec.replace(pattern, "");
 
     //trim first line if it includes Warning
     if (execTrim.split("\n")[0].includes("Warning"))
