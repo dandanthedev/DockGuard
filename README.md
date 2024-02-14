@@ -1,3 +1,5 @@
+<img src="https://github.com/daanschenkel/DockGuard/blob/main/logo.png?raw=true" width="100" height="100" align="right" />
+
 # DockGuard
 
 The easiest way to backup your Docker containers.
