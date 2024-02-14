@@ -25,11 +25,13 @@ npx dockguard --unattended
 
 #### Environment Variables
 
-`CONTAINERNAME_USER` - The username of the database running in docker container 'containername'
-`CONTAINERNAME_PASSWORD` - The password of the database running in docker container 'containername'
-`DOCKGUARD_DISABLE_AUTH` - Set to `true` to automatically temporarily disable authentication for the database running in docker container 'containername' (DANGEROUS FOR PRODUCTION)
+- `CONTAINERNAME_USER` - The username of the database running in docker container 'containername'
+
+- `CONTAINERNAME_PASSWORD` - The password of the database running in docker container 'containername'
+
+- `DOCKGUARD_DISABLE_AUTH` - Set to `true` to automatically temporarily disable authentication for the database running in docker container 'containername' (DANGEROUS FOR PRODUCTION)
 
 #### Flags
 
-`--unattended` - Run DockGuard without any prompts
-`--verbose` - Show verbose output
+- `--unattended` - Run DockGuard without any prompts
+- `--verbose` - Show verbose output
