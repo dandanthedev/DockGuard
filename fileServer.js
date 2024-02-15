@@ -21,3 +21,43 @@ async function serveFile(file, port) {
 module.exports = {
   serveFile,
 };
+
+async function startRecieve(location) {
+  const port = await findFreePort();
+
+  //run http server that listens for POST requests. When a request is received, the server will save the file to the specified location
+  const server = http.createServer(async (req, res) => {
+    if (req.method === "POST") {
+      const writeStream = fs.createWriteStream(location);
+
+      //pipe req body to file
+      req.pipe(writeStream);
+
+      req.on("end", () => {
+        res.writeHead(200);
+        res.end("file received");
+      });
+
+      writeStream.on("finish", () => {
+        server.close();
+      });
+
+      writeStream.on("error", (err) => {
+        console.error(err);
+        server.close();
+      });
+    } else {
+      res.writeHead(405);
+      res.end("Method not allowed");
+    }
+  });
+
+  server.listen(port);
+
+  return port;
+}
+
+module.exports = {
+  startRecieve,
+  serveFile,
+};

@@ -5,7 +5,7 @@ const {
   promisifyStream,
   randomString,
 } = require("../utils.js");
-const { serveFile, closeServer } = require("../fileServer.js");
+const { serveFile, closeServer, startRecieve } = require("../fileServer.js");
 const kleur = require("kleur");
 
 const docker = require("../docker.js");
@@ -143,53 +143,80 @@ async function runExport(container, isUnattended, verbose) {
     );
   }
 
+  //Webserver
+  console.log(kleur.gray("     🦆 Starting webserver..."));
+
+  const dumpTime = new Date();
+
+  const port = await startRecieve(
+    `./dumps/${container.data.Names[0]}-${dumpTime.getTime()}.sql`
+  );
+
   console.log(kleur.gray("     🦆 Running mysqldump..."));
 
   //rmysqldump --all-databases
-  let exec = await container.exec
+  let dumpExec = await container.exec
     .create({
       AttachStdout: true,
       AttachStderr: true,
-      Cmd: ["mysqldump", "--all-databases", "-u", username, "-p" + password],
+      Cmd: [
+        "sh",
+        "-c",
+        `mysqldump -u ${username} -p${password} --all-databases > /tmp/dockguard.sql`,
+      ],
     })
     .then((exec) => {
       return exec.start({ Detach: false });
     })
     .then((stream) => promisifyStream(stream));
 
-  if (verbose) console.log(exec);
+  if (verbose) console.log(dumpExec);
 
-  if (!exec.includes(`-- Dump completed on `)) {
-    console.log(kleur.red("     🚫 Failed to dump database."));
+  console.log(kleur.gray("     🦆 Sending dump to webserver..."));
+
+  //send post request to webserver
+  const sendExec = await container.exec
+    .create({
+      AttachStdout: true,
+      AttachStderr: true,
+      Cmd: [
+        "sh",
+        "-c",
+        `curl -X POST -d @/tmp/dockguard.sql http://host.docker.internal:${port}/`,
+      ],
+    })
+    .then((exec) => {
+      return exec.start({ Detach: false });
+    })
+    .then((stream) => promisifyStream(stream));
+
+  if (verbose) console.log(sendExec);
+
+  console.log(kleur.gray("     🦆 Cleaning up..."));
+  await container.exec
+    .create({
+      AttachStdout: true,
+      AttachStderr: true,
+      Cmd: ["sh", "-c", `rm /tmp/dockguard.sql`],
+    })
+    .then((exec) => {
+      return exec.start({ Detach: false });
+    });
+
+  console.log(kleur.gray("     🦆 Checking if dump has been created"));
+
+  if (
+    !fs.existsSync(
+      `./dumps/${container.data.Names[0]}-${dumpTime.getTime()}.sql`
+    )
+  ) {
+    console.log(
+      kleur.red(
+        "     ⚠️ I couldn't find the dump file. Something went wrong during the process."
+      )
+    );
     return false;
   }
-
-  const dumpTime = new Date();
-
-  //save raw dump to file
-  fs.writeFileSync(
-    `./dumps${container.data.Names[0]}-${dumpTime.getTime()}.sql`,
-    exec
-  );
-
-  //remove all ? characters from the dump
-  let pattern = /^[a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]*$/;
-
-  let execTrim = exec.replace(pattern, "");
-
-  //trim first line if it includes Warning
-  if (execTrim.split("\n")[0].includes("Warning"))
-    execTrim = execTrim.split("\n").slice(1).join("\n");
-
-  execTrim = `-- Dumped from ${
-    container.data.Names[0]
-  } by DockGuard at ${dumpTime.toISOString()}\n${execTrim}`;
-
-  //save trimmed dump to file
-  fs.writeFileSync(
-    `./dumps/${container.data.Names[0]}-${dumpTime.getTime()}-trimmed.sql`,
-    execTrim
-  );
 
   //if auth was disabled, re-enable it
   if (username === "root" && password === false) {
@@ -203,7 +230,7 @@ async function runExport(container, isUnattended, verbose) {
     kleur.green(
       `     🎉 Backup of ${container.data.Names[0]} has been saved to ./dumps/${
         container.data.Names[0]
-      }-${dumpTime.getTime()}-trimmed.sql`
+      }-${dumpTime.getTime()}.sql`
     )
   );
 
@@ -215,9 +242,9 @@ async function runRestore(container, isUnattended, verbose, newContainer) {
   const backupsForContainer = backups.filter((b) =>
     b.includes(container.data.Names[0].replace("/", ""))
   );
-  const trimmedBackups = backupsForContainer.filter((b) =>
-    b.includes("-trimmed")
-  );
+
+  //hacky fix
+  const trimmedBackups = backupsForContainer;
 
   if (trimmedBackups.length < 1) {
     console.log(
