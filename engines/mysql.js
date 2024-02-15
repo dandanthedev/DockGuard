@@ -118,6 +118,27 @@ async function runExport(container, isUnattended, verbose) {
       true
     );
 
+  console.log(kleur.gray("     🦆 Checking if authentication is valid..."));
+  const exec = await container.exec
+    .create({
+      AttachStdout: true,
+      AttachStderr: true,
+      Cmd: ["mysql", "-u", username, "-p" + password, "-e", "SELECT 1"],
+    })
+    .then((exec) => {
+      return exec.start({ Detach: false });
+    })
+    .then((stream) => promisifyStream(stream));
+
+  if (exec.includes("ERROR")) {
+    console.log(
+      kleur.red(
+        "     ⚠️ Authentication failed. Please provide valid credentials."
+      )
+    );
+    return false;
+  }
+
   if (
     !foundInEnv.length > 0 &&
     !isUnattended &&
@@ -208,7 +229,9 @@ async function runExport(container, isUnattended, verbose) {
   if (
     !fs.existsSync(
       `./dumps/${container.data.Names[0]}-${dumpTime.getTime()}.sql`
-    )
+    ) ||
+    fs.statSync(`./dumps/${container.data.Names[0]}-${dumpTime.getTime()}.sql`)
+      .size < 1
   ) {
     console.log(
       kleur.red(
