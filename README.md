@@ -15,6 +15,7 @@ Importing back to a container is something we plan on adding soon™
 ## Support
 This is the full list of containers DockGuard currently supports:
 - MySQL database
+> if you know anything at all about coding, please add new container types to the engines! I'll whip up some documentation soon, for now you can just check the existing files
 
 ## Usage
 
