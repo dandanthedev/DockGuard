@@ -12,6 +12,10 @@ Are you struggling with backing something up, a database, container, or whatever
 DockGuard is here for you! Simply run the command, enter in some basic data and get a neat export file!
 Importing back to a container is something we plan on adding soon™
 
+## Support
+This is the full list of containers DockGuard currently supports:
+- MySQL database
+
 ## Usage
 
 You can go the fully guided route by running `npx dockguard` and following the prompts, or you can fully automate the process by adding environment variables.
