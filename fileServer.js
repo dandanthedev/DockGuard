@@ -18,10 +18,6 @@ async function serveFile(file, port) {
   return port;
 }
 
-module.exports = {
-  serveFile,
-};
-
 async function startRecieve(location) {
   const port = await findFreePort();
 

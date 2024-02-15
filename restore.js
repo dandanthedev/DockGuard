@@ -47,11 +47,37 @@ async function main() {
 
   if (container) stillExists = true;
 
-  //see if there is still a backup saved for this container
-  const backups = fs.readdirSync("./dumps");
-  const backupsForContainer = backups.filter((b) => b.includes(action));
-  if (backupsForContainer.length < 1) {
-    console.log(kleur.red(`🦆 I couldn't find any backups for ${action}.`));
+  //recursively search dumps folder for files
+  const files = [];
+  const walk = async (dir) => {
+    const list = fs.readdirSync(dir);
+    for (const file of list) {
+      const path = `${dir}/${file}`;
+      const stat = fs.statSync(path);
+      if (stat && stat.isDirectory()) {
+        await walk(path);
+      } else {
+        files.push(path);
+      }
+
+      if (file === list[list.length - 1]) {
+        return;
+      }
+    }
+  };
+  await walk("./dumps");
+
+  //find dumps for the container
+  const containerFiles = files.filter((f) =>
+    f.includes(container.data.data.Names[0])
+  );
+
+  if (containerFiles.length === 0) {
+    console.log(
+      kleur.red(
+        `🦆 I couldn't find any dumps for ${container.data.data.Names[0]}`
+      )
+    );
     process.exit(1);
   }
 

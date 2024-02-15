@@ -267,7 +267,7 @@ async function runExport(container, isUnattended, verbose) {
 }
 
 async function runRestore(container, isUnattended, verbose, newContainer) {
-  const backups = fs.readdirSync("./dumps");
+  const backups = fs.readdirSync("./dumps/mysql");
   const backupsForContainer = backups.filter((b) =>
     b.includes(container.data.Names[0].replace("/", ""))
   );
@@ -426,7 +426,7 @@ async function runRestore(container, isUnattended, verbose, newContainer) {
   if (exec.includes("ERROR")) {
     console.log(
       kleur.red(
-        "🦆 Failed to restore database. The webserver might not have been reachable from within the docker container, or the backup file could have been malformed."
+        "🦆 Failed to restore database. The webserver might not have been reachable from within the docker container, or the backup file could have been malformed. Use --verbose for more info."
       )
     );
     return false;
