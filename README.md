@@ -61,3 +61,4 @@ npx dockguard --unattended
 
 - `--unattended` - Run DockGuard without any prompts
 - `--verbose` - Show verbose output
+- `--restore [CONTAINERNAME]` Restore from backup
