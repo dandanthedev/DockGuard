@@ -48,7 +48,9 @@ async function startRecieve(location) {
       });
     } else {
       res.writeHead(405);
-      res.end("Method not allowed");
+      res.end(
+        "You have stumbled upon the DockGuard uploading server. This server is used to pass the export file to DockGuard. This server should shut down automatically after the file is received."
+      );
     }
   });
 
