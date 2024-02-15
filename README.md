@@ -1,8 +1,16 @@
+> :warning: **This project is in very early development stage!** I'm still actively working on adding more services & backup storages!
+
+
 <img src="https://github.com/daanschenkel/DockGuard/blob/main/logo.png?raw=true" width="100" height="100" align="right" />
 
 # DockGuard
 
 The easiest way to backup your Docker containers.
+
+## ???
+Are you struggling with backing something up, a database, container, or whatever?
+DockGuard is here for you! Simply run the command, enter in some basic data and get a neat export file!
+Importing back to a container is something we plan on adding soon™
 
 ## Usage
 
