@@ -68,6 +68,9 @@ async function detectRunning(containers) {
 }
 
 async function runExport(container, isUnattended, verbose) {
+  if (!fs.existsSync("./dumps/mysql"))
+    fs.mkdirSync("./dumps/mysql", { recursive: true });
+
   let foundInEnv = [];
 
   let username =
@@ -170,7 +173,7 @@ async function runExport(container, isUnattended, verbose) {
   const dumpTime = new Date();
 
   const port = await startRecieve(
-    `./dumps/${container.data.Names[0]}-${dumpTime.getTime()}.sql`
+    `./dumps/mysql/${container.data.Names[0]}-${dumpTime.getTime()}.sql`
   );
 
   console.log(kleur.gray("     🦆 Running mysqldump..."));
@@ -228,10 +231,11 @@ async function runExport(container, isUnattended, verbose) {
 
   if (
     !fs.existsSync(
-      `./dumps/${container.data.Names[0]}-${dumpTime.getTime()}.sql`
+      `./dumps/mysql/${container.data.Names[0]}-${dumpTime.getTime()}.sql`
     ) ||
-    fs.statSync(`./dumps/${container.data.Names[0]}-${dumpTime.getTime()}.sql`)
-      .size < 1
+    fs.statSync(
+      `./dumps/mysql/${container.data.Names[0]}-${dumpTime.getTime()}.sql`
+    ).size < 1
   ) {
     console.log(
       kleur.red(
@@ -251,7 +255,9 @@ async function runExport(container, isUnattended, verbose) {
 
   console.log(
     kleur.green(
-      `     🎉 Backup of ${container.data.Names[0]} has been saved to ./dumps/${
+      `     🎉 Backup of ${
+        container.data.Names[0]
+      } has been saved to ./dumps/mysql/${
         container.data.Names[0]
       }-${dumpTime.getTime()}.sql`
     )
@@ -392,7 +398,7 @@ async function runRestore(container, isUnattended, verbose, newContainer) {
 
   console.log(kleur.gray("🦆 Spinning up webserver"));
 
-  const port = await serveFile(`./dumps/${selectedBackup}`);
+  const port = await serveFile(`./dumps/mysql/${selectedBackup}`);
 
   console.log(
     kleur.gray(`🦆 Backup is listening on ${port}/backup.sql. Restoring...`)
