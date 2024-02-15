@@ -10,7 +10,7 @@ The easiest way to backup your Docker containers.
 
 Are you struggling with backing something up, a database, container, or whatever?
 DockGuard is here for you! Simply run the command, enter in some basic data and get a neat export file for any kind of service!
-Accidentially deleted the entire database?<sup>[:)](https://www.youtube.com/watch?v=tLdRBsuvVKc)</sup> Don't worry, DockGuard can get it back with just a few clicks, or, well, keyboard presses i guess... Uhh, moving on!
+Accidentially deleted the entire database? <sup>[:)](https://www.youtube.com/watch?v=tLdRBsuvVKc)</sup> Don't worry, DockGuard can get it back with just a few clicks, or, well, keyboard presses i guess... Uhh, moving on!
 
 ## Support
 
