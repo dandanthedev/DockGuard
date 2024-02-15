@@ -12,7 +12,6 @@
   "dependencies": {
     "dotenv": "^16.4.4",
     "kleur": "^4.1.5",
-    "mysqldump": "^3.2.0",
     "node-docker-api": "^1.1.22"
   },
   "bin": {
