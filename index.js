@@ -32,7 +32,7 @@ async function main() {
 
   console.log(kleur.gray("🦆 Looking for supported containers"));
 
-  const dbPorts = await supportedContainers(docker);
+  let dbPorts = await supportedContainers(docker);
 
   console.log(kleur.green("\n🦆 Found the following running services:"));
   for (const container of dbPorts) {

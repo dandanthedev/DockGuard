@@ -54,20 +54,20 @@ const promisifyStream = (stream, send = "") => {
   });
 };
 
-async function supportedContainers(docker) {
+async function supportedContainers(docker, verbose) {
   //load all engines
   const engines = fs.readdirSync("./engines").map((f) => f.split(".")[0]);
 
   const list = await docker.container.list();
 
-  const running = list.filter((c) => c.data.State === "running");
+  if (verbose) console.log(list);
 
   const dbPorts = [];
 
   //loop through all engines
   for (const engine of engines) {
     const engineModule = require(`./engines/${engine}`);
-    const runningDatabases = await engineModule.detectRunning(running);
+    const runningDatabases = await engineModule.detectRunning(list);
     dbPorts.push(...runningDatabases.map((c) => ({ type: engine, data: c })));
   }
 

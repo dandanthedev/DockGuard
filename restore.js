@@ -39,7 +39,7 @@ async function main() {
     process.exit(1);
   }
 
-  const dbPorts = await supportedContainers(docker);
+  const dbPorts = await supportedContainers(docker, verbose);
 
   const container = dbPorts.find(
     (c) => c.data.data.Names[0].replace("/", "") === action
@@ -69,13 +69,13 @@ async function main() {
 
   //find dumps for the container
   const containerFiles = files.filter((f) =>
-    f.includes(container.data.data.Names[0])
+    f.includes(container?.data?.data?.Names[0])
   );
 
   if (containerFiles.length === 0) {
     console.log(
       kleur.red(
-        `🦆 I couldn't find any dumps for ${container.data.data.Names[0]}`
+        `🦆 I couldn't find any dumps for ${container?.data?.data?.Names[0]}. Try starting the container.`
       )
     );
     process.exit(1);
