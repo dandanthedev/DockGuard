@@ -17,7 +17,8 @@ Accidentially deleted the entire database?<sup>[:)](https://www.youtube.com/watc
 This is the full list of containers DockGuard currently supports:
 
 - MySQL database
-  > if you know anything at all about coding, please add new container types to the engines! I'll whip up some documentation soon, for now you can just check the existing files
+
+> if you know anything at all about coding, please add new container types to the engines! I'll whip up some documentation soon, for now you can just check the existing files.
 
 ## Usage
 
