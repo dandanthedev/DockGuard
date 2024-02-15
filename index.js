@@ -3,6 +3,13 @@
 require("dotenv").config();
 
 const isUnattended = process.argv.includes("--unattended");
+const restore = process.argv.includes("--restore");
+
+if (restore) {
+  console.log("🦆 Running restore script");
+  require("./restore.js");
+  return;
+}
 
 const docker = require("./docker.js");
 
@@ -11,7 +18,7 @@ const kleur = require("kleur");
 
 const label = "dockguard";
 
-const { yesOrNo } = require("./utils.js");
+const { yesOrNo, supportedContainers } = require("./utils.js");
 
 const mysql = require("./engines/mysql.js");
 
@@ -23,25 +30,11 @@ async function main() {
     fs.mkdirSync("./dumps");
   }
 
-  //load all engines
-  const engines = fs.readdirSync("./engines").map((f) => f.split(".")[0]);
-
   console.log(kleur.gray("🦆 Looking for supported containers"));
 
-  const list = await docker.container.list();
-
-  const running = list.filter((c) => c.data.State === "running");
-
-  const dbPorts = [];
-
-  //loop through all engines
-  for (const engine of engines) {
-    const engineModule = require(`./engines/${engine}`);
-    const runningDatabases = await engineModule.detectRunning(running);
-    dbPorts.push(...runningDatabases.map((c) => ({ type: engine, data: c })));
-  }
-
-  console.log(kleur.green("\n🦆 Found the following running services:"));
+  const dbPorts = await console.log(
+    kleur.green("\n🦆 Found the following running services:")
+  );
   for (const container of dbPorts) {
     //convert all container data to regular objects
 
