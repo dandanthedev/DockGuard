@@ -173,7 +173,7 @@ async function runExport(container, isUnattended, verbose) {
   const dumpTime = new Date();
 
   const port = await startRecieve(
-    `./dumps/mysql/${container.data.Names[0]}-${dumpTime.getTime()}.sql`
+    `./dumps/mysql/${container.data.Names[0]}-${dumpTime.getTime()}.gz`
   );
 
   console.log(kleur.gray("     🦆 Running mysqldump..."));
@@ -186,7 +186,7 @@ async function runExport(container, isUnattended, verbose) {
       Cmd: [
         "sh",
         "-c",
-        `mysqldump -u ${username} -p${password} --all-databases > /tmp/dockguard.sql`,
+        `mysqldump -u ${username} -p${password} --all-databases | gzip > /tmp/dockguard.gz`,
       ],
     })
     .then((exec) => {
@@ -206,7 +206,7 @@ async function runExport(container, isUnattended, verbose) {
       Cmd: [
         "sh",
         "-c",
-        `curl -X POST -d @/tmp/dockguard.sql http://host.docker.internal:${port}/`,
+        `curl -s -X POST --data-binary @/tmp/dockguard.gz http://host.docker.internal:${port}/`,
       ],
     })
     .then((exec) => {
@@ -221,7 +221,7 @@ async function runExport(container, isUnattended, verbose) {
     .create({
       AttachStdout: true,
       AttachStderr: true,
-      Cmd: ["sh", "-c", `rm /tmp/dockguard.sql`],
+      Cmd: ["sh", "-c", `rm /tmp/dockguard.sql /tmp/dockguard.gz`],
     })
     .then((exec) => {
       return exec.start({ Detach: false });
@@ -231,10 +231,10 @@ async function runExport(container, isUnattended, verbose) {
 
   if (
     !fs.existsSync(
-      `./dumps/mysql/${container.data.Names[0]}-${dumpTime.getTime()}.sql`
+      `./dumps/mysql/${container.data.Names[0]}-${dumpTime.getTime()}.gz`
     ) ||
     fs.statSync(
-      `./dumps/mysql/${container.data.Names[0]}-${dumpTime.getTime()}.sql`
+      `./dumps/mysql/${container.data.Names[0]}-${dumpTime.getTime()}.gz`
     ).size < 1
   ) {
     console.log(
@@ -259,7 +259,7 @@ async function runExport(container, isUnattended, verbose) {
         container.data.Names[0]
       } has been saved to ./dumps/mysql/${
         container.data.Names[0]
-      }-${dumpTime.getTime()}.sql`
+      }-${dumpTime.getTime()}.gz`
     )
   );
 
@@ -401,7 +401,7 @@ async function runRestore(container, isUnattended, verbose, newContainer) {
   const port = await serveFile(`./dumps/mysql/${selectedBackup}`);
 
   console.log(
-    kleur.gray(`🦆 Backup is listening on ${port}/backup.sql. Restoring...`)
+    kleur.gray(`🦆 Backup is listening on ${port}/backup.gz. Restoring...`)
   );
 
   const internalIp = "host.docker.internal";
@@ -413,7 +413,7 @@ async function runRestore(container, isUnattended, verbose, newContainer) {
       Cmd: [
         "sh",
         "-c",
-        `curl -s http://${internalIp}:${port}/backup.sql | mysql -u ${username} -p${password} --binary-mode`,
+        `curl -s http://${internalIp}:${port}/backup.gz > /tmp/dockguard.gz`,
       ],
     })
     .then((exec) => {
@@ -422,6 +422,34 @@ async function runRestore(container, isUnattended, verbose, newContainer) {
     .then((stream) => promisifyStream(stream));
 
   if (verbose) console.log(exec);
+
+  console.log(kleur.gray("🦆 Extracting backup..."));
+
+  const extractExec = await container.exec
+    .create({
+      AttachStdout: true,
+      AttachStderr: true,
+      Cmd: ["sh", "-c", `gunzip /tmp/dockguard.gz`],
+    })
+    .then((exec) => {
+      return exec.start({ Detach: false });
+    })
+    .then((stream) => promisifyStream(stream));
+
+  if (verbose) console.log(extractExec);
+
+  console.log(kleur.gray("🦆 Restoring backup..."));
+
+  const restoreExec = await container.exec
+    .create({
+      AttachStdout: true,
+      AttachStderr: true,
+      Cmd: ["sh", "-c", `mysql -u ${username} -p${password} < /tmp/dockguard`],
+    })
+    .then((exec) => {
+      return exec.start({ Detach: false });
+    })
+    .then((stream) => promisifyStream(stream));
 
   if (exec.includes("ERROR")) {
     console.log(
